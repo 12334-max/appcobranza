@@ -54,3 +54,8 @@ data class WalletEntity(
     @SerializedName("Color") val color: String
 )
 
+data class WalletSelected(
+    val wallet: WalletEntity,
+    var isSeleced: Boolean = false
+)
+

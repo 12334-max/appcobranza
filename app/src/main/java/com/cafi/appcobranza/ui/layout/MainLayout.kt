@@ -36,8 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.cafi.appcobranza.model.WalletSelected
 import com.cafi.appcobranza.ui.pages.risk.Risk
 import com.cafi.appcobranza.ui.pages.visits.Visits
 import com.cafi.appcobranza.ui.pages.wallet.Wallet
@@ -46,6 +46,7 @@ import com.cafi.appcobranza.utils.SelectorDate
 class MainLayout{
 
     var isFilter by mutableStateOf(true)
+    private var listWall: List<WalletSelected> by mutableStateOf(emptyList())
 
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -162,7 +163,9 @@ class MainLayout{
                    Visits().VisitsContent(isVisibleCalendar, isFilter)
                 }
                 1 -> {
-                    Wallet().WalletContent()
+                    Wallet().WalletContent(){
+                        result -> listWall = result
+                    }
                 }
                 2 -> {
                     Risk().RiskContent()
@@ -316,7 +319,9 @@ class MainLayout{
         IconButton(onClick = {
             Log.d("MyScreen", "IconButton clicked")
             opnCalendar.openCalendar(context){
-                result -> Log.d("Fecha Seleccionada: ", result )
+                    result -> listWall.forEach {
+                                    Log.d("Obejetos desde IconsCalendar: ", it.toString() )
+                                }
             }
         }) {
             Icon(imageVector = Icons.Filled.CalendarMonth, contentDescription = null, tint = Color.White)

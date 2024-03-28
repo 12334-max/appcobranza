@@ -9,19 +9,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Checkbox
+import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.Divider
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,15 +35,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cafi.appcobranza.model.WalletEntity
+import com.cafi.appcobranza.model.WalletSelected
 import com.cafi.appcobranza.service.WalletServiceImp
 import com.cafi.appcobranza.utils.Status
 
 class Wallet {
-
-    private var clientsSelected: MutableList<WalletEntity> by mutableStateOf(mutableListOf())
-
     @Composable
-    fun WalletContent(){
+    fun WalletContent(rs: (List<WalletSelected>)-> Unit){
         val walletView: WalletServiceImp = viewModel()
 
         when(val status = walletView.status.collectAsState().value){
@@ -61,7 +58,8 @@ class Wallet {
             is Status.Success -> {
 
                 val wallet: List<WalletEntity> = status.data as List<WalletEntity>
-                val isSelected = remember { mutableMapOf<WalletEntity, Boolean>() }
+                var selectedItems by remember { mutableStateOf(emptyList<WalletSelected>()) }
+
 
                 Box(
                     contentAlignment = Alignment.Center,
@@ -69,9 +67,12 @@ class Wallet {
                     .fillMaxWidth()
                 ){
                     LazyColumn(){
-                        items(wallet){
-
-                            item -> Surface(
+                        itemsIndexed(wallet){
+                            item, result ->
+                            val selectableItem = selectedItems.find { it.wallet.id == result.id }
+                                ?: WalletSelected(result)
+                            rs(selectedItems)
+                            Surface(
                                 color = MaterialTheme.colors.background,
                                 shape = RoundedCornerShape(4.dp),
                                 modifier = Modifier
@@ -84,91 +85,69 @@ class Wallet {
                                         .background(Color.Transparent)
                                         .fillMaxWidth()
                                 ) {
-                                    ListTile(wallet = item)
+                                    ListTile(wallet = result)
                                 }
                             }
-                                Box(
-                                    contentAlignment = Alignment.CenterEnd,
-                                    modifier = Modifier
-                                        .padding(bottom = 10.dp)
-                                        .fillMaxWidth())
-                                {
-                                    Row() {
-                                        Log.e("isSelected[item]1", " ${isSelected[item]}", )
-                                        when(isSelected[item]){
-                                            null -> {
-                                                Log.e("isSelected[item]2", " ${isSelected[item]}", )
-                                                OutlinedButton(
-                                                    modifier = Modifier
-                                                        .height(30.dp)
-                                                        .padding(end = 10.dp),
-                                                    onClick = {
-                                                        isSelected[item] = true
-                                                        clientsSelected.add(item)
-                                                    }
-                                                )
-                                                {
-                                                    Text(
-                                                        color = Color.DarkGray,
-                                                        text = "Seleccionar",
-                                                        fontSize = 12.sp
-                                                    )
-                                                }
-                                            }
-                                            false ->{
-                                                OutlinedButton(
-                                                    modifier = Modifier
-                                                        .height(30.dp)
-                                                        .padding(end = 10.dp),
-                                                    onClick = {
-                                                        isSelected[item] = true
-                                                        clientsSelected.add(item)
-                                                    }
-                                                )
-                                                {
-                                                    Text(
-                                                        color = Color.DarkGray,
-                                                        text = "Seleccionar",
-                                                        fontSize = 12.sp
-                                                    )
-                                                }
-                                            }
-                                            true -> {
-                                                Log.e("isSelected[item]", " ${isSelected[item]}", )
-                                                OutlinedButton(
-                                                    modifier = Modifier
-                                                        .height(30.dp)
-                                                        .padding(end = 10.dp),
-                                                    onClick = {
-                                                        isSelected[item] = false
-                                                        clientsSelected.removeIf { it.id == item.id }
-                                                    }
-                                                )
-                                                {
-                                                    Icon(imageVector = Icons.Filled.Cancel, contentDescription = null)
-                                                }
-                                            }
-                                        }
-
-                                        OutlinedButton(
-                                            modifier = Modifier
-                                                .height(30.dp),
-                                            onClick = {
-                                                clientsSelected.forEach {
-                                                    Log.d("Cartera Selecionado: ", it.toString())
-                                                }
-                                            }
-                                        )
-                                        {
+                            Box(
+                                contentAlignment = Alignment.CenterEnd,
+                                modifier = Modifier
+                                    .padding(bottom = 10.dp)
+                                    .fillMaxWidth())
+                            {
+                                Row() {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .height(35.dp)
+                                            .width(135.dp)
+                                    ) {
+                                        Row() {
                                             Text(
-                                                color = Color.DarkGray,
-                                                text = "Ver Detalle",
-                                                fontSize = 12.sp
+                                                modifier = Modifier.padding(top = 9.dp),
+                                                text = "Seleccionar",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.Gray
+                                            )
+                                            Checkbox(
+                                                checked = selectableItem.isSeleced,
+                                                onCheckedChange = {isChecked ->
+                                                    selectableItem.isSeleced = isChecked
+                                                    selectedItems = if (isChecked){
+                                                        selectedItems + selectableItem
+                                                    }else{
+                                                        selectedItems - selectableItem
+                                                    }
+                                                },
+                                                colors = CheckboxDefaults.colors(
+                                                    checkedColor = Color(150,44,0),
+                                                    uncheckedColor = Color.Gray,
+                                                ),
                                             )
                                         }
+
+                                    }
+                                    TextButton(
+                                        onClick = {
+                                            selectedItems.filter { it.isSeleced }
+                                            selectedItems.forEach {
+                                                Log.e("Objetos seleccionados: ",it.toString() )
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .height(35.dp)
+                                            .padding(end = 5.dp)
+                                    ) {
+                                        Text(
+                                            text = "Ver detalles",
+                                            fontSize = 12.sp,
+                                            color = Color.Gray
+                                        )
                                     }
                                 }
-                                Divider(startIndent = 2.dp)
+                            }
+                            Divider(startIndent = 2.dp)
+
                         }
                     }
                 }
@@ -184,6 +163,7 @@ class Wallet {
             }
         }
     }
+
     @Composable
     fun ListTile(
         wallet: WalletEntity
