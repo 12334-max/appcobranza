@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Icon
@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -45,15 +46,17 @@ import com.cafi.appcobranza.utils.SelectorDate
 
 class MainLayout{
 
-    var isFilter by mutableStateOf(true)
+    private var isFilterVisit by mutableStateOf(true)
+    private var isFilterWallet by mutableStateOf(true)
     private var listWall: List<WalletSelected> by mutableStateOf(emptyList())
+    private var search by mutableStateOf("")
 
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @Composable
     fun AppContent(){
         val scaffoldState = rememberScaffoldState()
-        var selectedTabIndex by remember { mutableStateOf(0) }
+        var selectedTabIndex by remember { mutableStateOf(1) }
         var isVisibleCalendar by remember { mutableStateOf(false) }
 
         Scaffold (
@@ -160,10 +163,10 @@ class MainLayout{
             }
             when (selectedTabIndex) {
                 0 -> {
-                   Visits().VisitsContent(isVisibleCalendar, isFilter)
+                   Visits().VisitsContent(isVisibleCalendar, isFilterVisit, listWall)
                 }
                 1 -> {
-                    Wallet().WalletContent(){
+                    Wallet().WalletContent(isFilterWallet, search){
                         result -> listWall = result
                     }
                 }
@@ -202,7 +205,7 @@ class MainLayout{
                     selected = selectedTabIndex == 0,
                     onClick = {
                         selectedTabIndex = 0
-                        isFilter = true
+                        isFilterVisit = true
                               },
                     text = { Text(text = "Visitas") },
                     icon = {
@@ -213,7 +216,7 @@ class MainLayout{
                     selected = selectedTabIndex == 1,
                     onClick = {
                         selectedTabIndex = 1
-                        isFilter = false
+                        isFilterVisit = false
                               },
                     text = { Text(text = "Promesas") },
                     icon = {
@@ -236,7 +239,10 @@ class MainLayout{
             ) {
                 Tab(
                     selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
+                    onClick = {
+                        selectedTabIndex = 0
+                        isFilterWallet = true
+                              },
                     text = { Text(text = "Riesgo") },
                     icon = {
                         Icon(imageVector = Icons.Filled.Checklist, contentDescription = null)
@@ -244,7 +250,10 @@ class MainLayout{
                 )
                 Tab(
                     selected = selectedTabIndex == 1,
-                    onClick = { selectedTabIndex = 1 },
+                    onClick = {
+                        selectedTabIndex = 1
+                        isFilterWallet = false
+                              },
                     text = { Text(text = "Vigente") },
                     icon = {
                         Icon(imageVector = Icons.Filled.Checklist, contentDescription = null)
@@ -273,34 +282,39 @@ class MainLayout{
     fun WalletActions() {
         val context = LocalContext.current
         var isVisible by remember { mutableStateOf(false) }
-        var buscar by remember { mutableStateOf("") }
         val opnCalendar = SelectorDate()
+        val keyboardController = LocalSoftwareKeyboardController.current
+
         when(isVisible) {
               true -> {
                   OutlinedTextField(
-                      value = buscar,
+                      value = search,
                       onValueChange = {
-                                      buscar = it
+                          search = it
                       },
-                      enabled = true,
-                      placeholder = { Text(text = "Buscar")},
                       trailingIcon = {
-                          IconButton(onClick = {
+                          IconButton(
+                              onClick = {
                               isVisible = false
                           }){
                               Icon(imageVector = Icons.Filled.Search, contentDescription = null)
                           }
                       },
-                      keyboardOptions = KeyboardOptions(
+                      keyboardActions = KeyboardActions(
+                          onSearch  = {
+                              keyboardController?.hide()
+                              isVisible = !isVisible
+                          }
+                      ),
+                      keyboardOptions = KeyboardOptions.Default.copy(
                           keyboardType = KeyboardType.Text,
                           imeAction = ImeAction.Search
                       ),
                       modifier = Modifier
-                          .width(250.dp)
-                          .height(60.dp)
-                          .padding(top = 5.dp),
-                      singleLine = true,
-                      shape = CircleShape
+                          .width(200.dp)
+                          .height(45.dp),
+                      enabled = true,
+                     shape = CircleShape,
                   )
               }
               else -> {}
@@ -320,8 +334,10 @@ class MainLayout{
             Log.d("MyScreen", "IconButton clicked")
             opnCalendar.openCalendar(context){
                     result -> listWall.forEach {
-                                    Log.d("Obejetos desde IconsCalendar: ", it.toString() )
-                                }
+                        it.fechaVisita = result
+                        Log.d("Obejetos desde IconsCalendar: ", it.fechaVisita.toString())
+                    }
+                Log.d("getEventVisits: ", listWall.toString())
             }
         }) {
             Icon(imageVector = Icons.Filled.CalendarMonth, contentDescription = null, tint = Color.White)

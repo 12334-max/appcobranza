@@ -22,6 +22,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,8 +41,11 @@ import com.cafi.appcobranza.service.WalletServiceImp
 import com.cafi.appcobranza.utils.Status
 
 class Wallet {
+
+    private var filterOne: List<WalletEntity> by mutableStateOf(emptyList())
+    private var filterOThow: List<WalletEntity> by mutableStateOf(emptyList())
     @Composable
-    fun WalletContent(rs: (List<WalletSelected>)-> Unit){
+    fun WalletContent(isFilter: Boolean, search: String, rs: (List<WalletSelected>)-> Unit){
         val walletView: WalletServiceImp = viewModel()
 
         when(val status = walletView.status.collectAsState().value){
@@ -56,98 +60,188 @@ class Wallet {
                 }
             }
             is Status.Success -> {
-
+                LaunchedEffect(search){}
                 val wallet: List<WalletEntity> = status.data as List<WalletEntity>
                 var selectedItems by remember { mutableStateOf(emptyList<WalletSelected>()) }
-
-
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                     .fillMaxWidth()
                 ){
-                    LazyColumn(){
-                        itemsIndexed(wallet){
-                            item, result ->
-                            val selectableItem = selectedItems.find { it.wallet.id == result.id }
-                                ?: WalletSelected(result)
-                            rs(selectedItems)
-                            Surface(
-                                color = MaterialTheme.colors.background,
-                                shape = RoundedCornerShape(4.dp),
-                                modifier = Modifier
-                                    .padding(8.dp),
-                            ) {
-
-                                Column(
-                                    modifier = Modifier
-                                        .padding(horizontal = 8.dp)
-                                        .background(Color.Transparent)
-                                        .fillMaxWidth()
-                                ) {
-                                    ListTile(wallet = result)
-                                }
-                            }
-                            Box(
-                                contentAlignment = Alignment.CenterEnd,
-                                modifier = Modifier
-                                    .padding(bottom = 10.dp)
-                                    .fillMaxWidth())
-                            {
-                                Row() {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
+                    when(isFilter){
+                        true -> {
+                            val wallets = getWalletFilterOne(wallet, search)
+                            LazyColumn(){
+                                itemsIndexed(wallets){
+                                        item, result ->
+                                    val selectableItem = selectedItems.find { it.wallet.id == result.id }
+                                        ?: WalletSelected(result)
+                                    rs(selectedItems)
+                                    Surface(
+                                        color = MaterialTheme.colors.background,
+                                        shape = RoundedCornerShape(4.dp),
                                         modifier = Modifier
-                                            .height(35.dp)
-                                            .width(135.dp)
+                                            .padding(8.dp),
                                     ) {
+
+                                        Column(
+                                            modifier = Modifier
+                                                .padding(horizontal = 8.dp)
+                                                .background(Color.Transparent)
+                                                .fillMaxWidth()
+                                        ) {
+                                            ListTile(wallet = result)
+                                        }
+                                    }
+                                    Box(
+                                        contentAlignment = Alignment.CenterEnd,
+                                        modifier = Modifier
+                                            .padding(bottom = 10.dp)
+                                            .fillMaxWidth())
+                                    {
                                         Row() {
-                                            Text(
-                                                modifier = Modifier.padding(top = 9.dp),
-                                                text = "Seleccionar",
-                                                fontSize = 12.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.Gray
-                                            )
-                                            Checkbox(
-                                                checked = selectableItem.isSeleced,
-                                                onCheckedChange = {isChecked ->
-                                                    selectableItem.isSeleced = isChecked
-                                                    selectedItems = if (isChecked){
-                                                        selectedItems + selectableItem
-                                                    }else{
-                                                        selectedItems - selectableItem
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .height(35.dp)
+                                                    .width(135.dp)
+                                            ) {
+                                                Row() {
+                                                    Text(
+                                                        modifier = Modifier.padding(top = 9.dp),
+                                                        text = "Seleccionar",
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color.Gray
+                                                    )
+                                                    Checkbox(
+                                                        checked = selectableItem.isSeleced,
+                                                        onCheckedChange = {isChecked ->
+                                                            selectableItem.isSeleced = isChecked
+                                                            selectedItems = if (isChecked){
+                                                                selectedItems + selectableItem
+                                                            }else{
+                                                                selectedItems - selectableItem
+                                                            }
+                                                        },
+                                                        colors = CheckboxDefaults.colors(
+                                                            checkedColor = Color(150,44,0),
+                                                            uncheckedColor = Color.Gray,
+                                                        ),
+                                                    )
+                                                }
+
+                                            }
+                                            TextButton(
+                                                onClick = {
+                                                    selectedItems.filter { it.isSeleced }
+                                                    selectedItems.forEach {
+                                                        Log.e("Objetos seleccionados: ",it.toString() )
                                                     }
                                                 },
-                                                colors = CheckboxDefaults.colors(
-                                                    checkedColor = Color(150,44,0),
-                                                    uncheckedColor = Color.Gray,
-                                                ),
-                                            )
-                                        }
-
-                                    }
-                                    TextButton(
-                                        onClick = {
-                                            selectedItems.filter { it.isSeleced }
-                                            selectedItems.forEach {
-                                                Log.e("Objetos seleccionados: ",it.toString() )
+                                                modifier = Modifier
+                                                    .height(35.dp)
+                                                    .padding(end = 5.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Ver detalles",
+                                                    fontSize = 12.sp,
+                                                    color = Color.Gray
+                                                )
                                             }
-                                        },
-                                        modifier = Modifier
-                                            .height(35.dp)
-                                            .padding(end = 5.dp)
-                                    ) {
-                                        Text(
-                                            text = "Ver detalles",
-                                            fontSize = 12.sp,
-                                            color = Color.Gray
-                                        )
+                                        }
                                     }
+                                    Divider(startIndent = 2.dp)
+
                                 }
                             }
-                            Divider(startIndent = 2.dp)
+                        }
+                        false -> {
+                            val wallets = getWalletFilterThow(wallet, search)
+                            LazyColumn(){
+                                itemsIndexed(wallets){
+                                        item, result ->
+                                    val selectableItem = selectedItems.find { it.wallet.id == result.id }
+                                        ?: WalletSelected(result)
+                                    rs(selectedItems)
+                                    Surface(
+                                        color = MaterialTheme.colors.background,
+                                        shape = RoundedCornerShape(4.dp),
+                                        modifier = Modifier
+                                            .padding(8.dp),
+                                    ) {
 
+                                        Column(
+                                            modifier = Modifier
+                                                .padding(horizontal = 8.dp)
+                                                .background(Color.Transparent)
+                                                .fillMaxWidth()
+                                        ) {
+                                            ListTile(wallet = result)
+                                        }
+                                    }
+                                    Box(
+                                        contentAlignment = Alignment.CenterEnd,
+                                        modifier = Modifier
+                                            .padding(bottom = 10.dp)
+                                            .fillMaxWidth())
+                                    {
+                                        Row() {
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .height(35.dp)
+                                                    .width(135.dp)
+                                            ) {
+                                                Row() {
+                                                    Text(
+                                                        modifier = Modifier.padding(top = 9.dp),
+                                                        text = "Seleccionar",
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color.Gray
+                                                    )
+                                                    Checkbox(
+                                                        checked = selectableItem.isSeleced,
+                                                        onCheckedChange = {isChecked ->
+                                                            selectableItem.isSeleced = isChecked
+                                                            selectedItems = if (isChecked){
+                                                                selectedItems + selectableItem
+                                                            }else{
+                                                                selectedItems - selectableItem
+                                                            }
+                                                        },
+                                                        colors = CheckboxDefaults.colors(
+                                                            checkedColor = Color(150,44,0),
+                                                            uncheckedColor = Color.Gray,
+                                                        ),
+                                                    )
+                                                }
+
+                                            }
+                                            TextButton(
+                                                onClick = {
+                                                    selectedItems.filter { it.isSeleced }
+                                                    selectedItems.forEach {
+                                                        Log.e("Objetos seleccionados: ",it.toString() )
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .height(35.dp)
+                                                    .padding(end = 5.dp)
+                                            ) {
+                                                Text(
+                                                    text = "Ver detalles",
+                                                    fontSize = 12.sp,
+                                                    color = Color.Gray
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Divider(startIndent = 2.dp)
+
+                                }
+                            }
                         }
                     }
                 }
@@ -251,5 +345,20 @@ class Wallet {
         }
 
     }
+    private fun getWalletFilterOne(wallet: List<WalletEntity>, search: String): List<WalletEntity> {
+        filterOne =  wallet.filter { it.diasAtraso > 0 }
+        if (search != ""){
+            return filterOne.filter { it.nombreCliente.contains(search.uppercase()) || it.codigoCliente.contains(search) }
+        }
+        return filterOne
+    }
+    private fun getWalletFilterThow(wallet: List<WalletEntity>, search: String): List<WalletEntity> {
+        filterOThow =  wallet.filter { it.diasAtraso <= 0 }
+        if (search != ""){
+            return filterOThow.filter { it.nombreCliente.contains(search.uppercase()) || it.codigoCliente.contains(search)}
+        }
+        return filterOThow
+    }
 }
+
 

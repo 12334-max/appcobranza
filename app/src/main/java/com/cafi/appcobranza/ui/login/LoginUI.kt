@@ -157,7 +157,8 @@ class LoginUI {
                             Icon(imageVector = Icons.Filled.Lock, contentDescription = null)
                         },
                         trailingIcon = {
-                            IconButton(onClick = { isVisible = !isVisible }) {
+                            IconButton(
+                                onClick = { isVisible = !isVisible }) {
                                 when(isVisible){
                                     true -> {
                                         Icon(imageVector = Icons.Filled.Visibility, contentDescription = null)

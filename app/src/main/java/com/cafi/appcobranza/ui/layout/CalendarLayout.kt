@@ -1,6 +1,5 @@
 package com.cafi.appcobranza.ui.layout
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -21,9 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.cafi.appcobranza.model.Event
+import com.cafi.appcobranza.model.WalletSelected
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
@@ -38,7 +36,7 @@ import java.util.Locale
 class CalendarLayout {
     @Composable
     fun CalendarScreen(
-        events: List<Event>,
+        events: List<WalletSelected>,
         onDataSelected: (LocalDate) -> Unit
     ){
         val currentMonth = remember { YearMonth.now() }
@@ -52,7 +50,7 @@ class CalendarLayout {
             firstVisibleMonth = currentMonth,
             firstDayOfWeek = daysOfWeek.first()
         )
-        val selectedDateState = remember { mutableStateOf<LocalDate?>(null) }
+        val selectedDateState = remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
 
         HorizontalCalendar(
             state = state,
@@ -109,10 +107,10 @@ class CalendarLayout {
     fun Day(
         day: CalendarDay,
         isSelected: Boolean,
-        events: List<Event>,
+        events: List<WalletSelected>,
         onClick: (LocalDate) -> Unit
     ) {
-        val hasEvent = events.any { it.date == day.date }
+        val hasEvent = events.any { it.fechaVisita == day.date }
         Box(
             modifier = Modifier
                 .aspectRatio(1f)

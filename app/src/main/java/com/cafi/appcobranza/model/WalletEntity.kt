@@ -1,6 +1,7 @@
 package com.cafi.appcobranza.model
 
 import com.google.gson.annotations.SerializedName
+import java.time.LocalDate
 
 data class WalletEntity(
     @SerializedName("id") val id: String,
@@ -56,6 +57,7 @@ data class WalletEntity(
 
 data class WalletSelected(
     val wallet: WalletEntity,
-    var isSeleced: Boolean = false
+    var isSeleced: Boolean = false,
+    var fechaVisita: LocalDate = LocalDate.now()
 )
 

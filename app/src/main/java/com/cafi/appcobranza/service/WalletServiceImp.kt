@@ -28,7 +28,7 @@ class WalletServiceImp : ViewModel() {
         getAllWallet(data)
     }
 
-    fun getAllWallet(data: Any){
+    private fun getAllWallet(data: Any){
         viewModelScope.launch {
             try {
                 val response = service.postWallet(data)
