@@ -1,6 +1,7 @@
 package com.cafi.appcobranza.ui.layout
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,7 +16,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,17 +41,12 @@ import androidx.compose.ui.unit.dp
 import com.cafi.appcobranza.ui.pages.risk.Risk
 import com.cafi.appcobranza.ui.pages.visits.Visits
 import com.cafi.appcobranza.ui.pages.wallet.Wallet
-import java.time.LocalDate
+import com.cafi.appcobranza.utils.SelectorDate
 
 class MainLayout{
 
     var isFilter by mutableStateOf(true)
 
-    @Preview(showBackground = true)
-    @Composable
-    fun DefaultPreview(){
-        AppContent()
-    }
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @Composable
@@ -94,7 +90,7 @@ class MainLayout{
                     onTabSelected = {
                             index -> selectedTabIndex = index
                     },
-                    isVisibleCalendar
+                    isVisibleCalendar,
                 )
             }
         )
@@ -127,7 +123,7 @@ class MainLayout{
     fun NavBar(
         selectedTabIndex: Int,
         onTabSelected: (Int) -> Unit,
-        isVisibleCalendar: Boolean
+        isVisibleCalendar: Boolean,
     ){
 
         Column {
@@ -272,8 +268,10 @@ class MainLayout{
 
     @Composable
     fun WalletActions() {
+        val context = LocalContext.current
         var isVisible by remember { mutableStateOf(false) }
         var buscar by remember { mutableStateOf("") }
+        val opnCalendar = SelectorDate()
         when(isVisible) {
               true -> {
                   OutlinedTextField(
@@ -315,7 +313,12 @@ class MainLayout{
             else -> {}
         }
 
-        IconButton(onClick = { /*TODO*/ }) {
+        IconButton(onClick = {
+            Log.d("MyScreen", "IconButton clicked")
+            opnCalendar.openCalendar(context){
+                result -> Log.d("Fecha Seleccionada: ", result )
+            }
+        }) {
             Icon(imageVector = Icons.Filled.CalendarMonth, contentDescription = null, tint = Color.White)
         }
     }

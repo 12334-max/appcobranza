@@ -23,15 +23,15 @@ class Visits {
     private val calendarLayout = CalendarLayout()
     private var n = 1
     companion object{
-        private var localDate: LocalDate by mutableStateOf<LocalDate>(LocalDate.now())
+        private var localDate: LocalDate by mutableStateOf(LocalDate.now())
         private var events by mutableStateOf(
             listOf(
                 (Event(if (localDate.toString() == "2024-03-26") LocalDate.of(2024, 3, 26) else localDate, "Evento1 de ejemplo")),
                 (Event(if (localDate.toString() == "2024-03-26") LocalDate.of(2024, 3, 26) else localDate, "Evento2 de ejemplo"))
             )
         )
-        private var filterOne: List<Event> by mutableStateOf<List<Event>>(emptyList())
-        private var filterOThow: List<Event> by mutableStateOf<List<Event>>(emptyList())
+        private var filterOne: List<Event> by mutableStateOf(emptyList())
+        private var filterOThow: List<Event> by mutableStateOf(emptyList())
     }
 
     @Composable
